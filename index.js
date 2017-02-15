@@ -31,6 +31,13 @@ export function fetchData() {
   }
 };
 
+export function fetchUrlData(data) {
+  return {
+    type: FETCH_FULL, 
+    payload: data
+  };
+};
+
  
 export function postData(data) {
  // console.log(data);
