@@ -3,16 +3,16 @@
 
     "a": "1",
     "b": "2",
-    "c": {"url": "http://api.openweathermap.org/data/2.5/forecast/mumbai?id=524901&APPID=e0d5c571eb39e0ba37f4f6c212fd439d","c":""}
+    "c": {"url": "http://api.openweathermap.org/data/2.5/forecast/mumbai?id=524901&APPID=e0d5c571eb39e0ba37f4f6c212fd439d","c":"Loading..."}
   },
   {
     "a": "3",
     "b": "4",
-    "c": {"url": "http://api.openweathermap.org/data/2.5/forecast/mumbai?id=524901&APPID=e0d5c571eb39e0ba37f4f6c212fd439d","c":""}
+    "c": {"url": "http://api.openweathermap.org/data/2.5/forecast/mumbai?id=524901&APPID=e0d5c571eb39e0ba37f4f6c212fd439d","c":"Loading..."}
   },
   {
     "a": "5",
     "b": "6",
-    "c": {"url": "http://api.openweathermap.org/data/2.5/forecast/mumbai?id=524901&APPID=e0d5c571eb39e0ba37f4f6c212fd439d","c":""}
+    "c": {"url": "http://api.openweathermap.org/data/2.5/forecast/mumbai?id=524901&APPID=e0d5c571eb39e0ba37f4f6c212fd439d","c":"Loading..."}
   }
 ]
