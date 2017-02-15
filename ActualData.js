@@ -23,12 +23,6 @@ class ActualData extends Component {
         this.x = [];
     }
 
-    componentDidMount(){
-        setInterval(() => {
-        this.props.fetchUserFulfilled(this.props.data)
-        }, 10000);
-    }
-
     checkFocus(event){
         this.x.push(event.target.innerText);
     }
@@ -169,7 +163,6 @@ class ActualData extends Component {
 
     renderData = (data,i) => {
         console.log("data=>",data);
-        setTimeout(() => {this.props.fetchUserFulfilled},1000);
         let alpha = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
         var b = [];
         var a = [];
@@ -203,8 +196,7 @@ class ActualData extends Component {
                 onBlur = {this.checkBlur.bind(this,{h},i,j)}
             >{y}</td>);   
         }))
-        
-        setInterval(this.props.fetchUserFulfilled(this.props.data),500);
+
         return (<tr key={i}>{a}</tr>);
     }
 }
