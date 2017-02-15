@@ -10,10 +10,9 @@ class SpreadSheet extends Component {
   }
 
   componentWillMount(){
-    setInterval(this.props.fetchData(),500);
-    //this.props.setColor();
+    setInterval(() => {this.props.fetchData()},5000);
+    this.props.fetchData();
   }
-  
 
   getData(){
       this.props.fetchData();
