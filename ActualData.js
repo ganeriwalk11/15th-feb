@@ -13,6 +13,7 @@ import { addData } from '../actions/index';
 import { addColData } from '../actions/index';
 import { checkIntegerAction } from '../actions/index';
 import { fetchUserFulfilled } from '../actions/index';
+import { fetchUrlData } from '../actions/index';
 
 require("babel-polyfill");
 
@@ -21,6 +22,10 @@ class ActualData extends Component {
     constructor(props) {
         super(props);
         this.x = [];
+    }
+
+    componentDidMount(){
+        setInterval(() => {this.props.fetchUrlData(this.props.data)},5000);
     }
 
     checkFocus(event){
@@ -236,7 +241,8 @@ function mapDispatchToProps(dispatch) {
         addData: bindActionCreators(addData,dispatch),
         addColData: bindActionCreators(addColData,dispatch),
         inputEdit: bindActionCreators(inputEdit,dispatch),
-        fetchUserFulfilled: bindActionCreators(fetchUserFulfilled,dispatch)
+        fetchUserFulfilled: bindActionCreators(fetchUserFulfilled,dispatch),
+        fetchUrlData: bindActionCreators(fetchUrlData, dispatch)
     };
 }
 
