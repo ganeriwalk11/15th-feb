@@ -4,13 +4,12 @@ import { Observable } from 'rxjs/Observable';
 
 import { FETCH_DATA } from '../actions/index';
 import { FETCH_FUL } from '../actions/index';
+import { FETCH_FULL } from '../actions/index';
 import { ADD_DATA } from '../actions/index';
 import { ADD_COL } from '../actions/index';
 import { CHECK_INTEGER } from '../actions/index';
 import { APPLY_FUN } from '../actions/index';
 import { applyF } from '../actions/index';
-
-
 
 const rxFetch = require('rxjs-fetch');
 
@@ -30,23 +29,25 @@ export default function(state = [], action) {
           var q = [];
           data.map(function(row){
              for(var i=0;i<len;i++){
-                  if(i == 2 )
-                  {
-                    var urla = row[head[i]]["url"];
-                    var stockStream$ = rxFetch(urla).json();
-                    var stream2$ = stockStream$
-                    .subscribe(
-                      response => {
-                        row['c']['c'] = response["cod"];
-                        // var x = {};
-                        // x['c']=row['c']; 
-                        // row['c'] = x; 
-                        console.log("row=>",row);
-                      }
-                     );
+                  // if(i == 2 )
+                  // {
+                  //   var urla = row[head[i]]["url"];
+                  //   var stockStream$ = rxFetch(urla).json();
+                  //   var stream2$ = stockStream$
+                  //   .subscribe(
+                  //     response => {
+                  //       row['c']['c'] = response["cod"];
+                  //       // var x = {};
+                  //       // x['c']=row['c']; 
+                  //       // row['c'] = x; 
+                  //       console.log("row=>",row);
+                  //     }
+                  //    );
                     
-                       // row['c']['c'] = row['c']['c'];
-                  }
+                  //      // row['c']['c'] = row['c']['c'];
+                  // }
+                if(i==2){
+                }
                 else{
                   var t = head[i];
                   var b = row[head[i]];
@@ -61,7 +62,28 @@ export default function(state = [], action) {
         break;
       }
 
-      
+      case FETCH_FULL:{
+         console.log("there");
+         var head = Object.keys(action.payload[0]);
+          var len = head.length;
+          var data = action.payload;
+          data.map(function(row){
+                    var urla = row['c']["url"];
+                    var stockStream$ = rxFetch(urla).json();
+                    var stream2$ = stockStream$
+                    .subscribe(
+                      response => {
+                        row['c']['c'] = response["cod"];
+                        // var x = {};
+                        // x['c']=row['c']; 
+                        // row['c'] = x; 
+                        console.log("row=>",row);
+                        }
+                     );                  
+          });
+        return (data);
+        break;
+      }
 
       case ADD_DATA:{ 
         state = state.concat(action.payload);
