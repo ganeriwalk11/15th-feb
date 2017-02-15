@@ -30,7 +30,7 @@ export default function(state = [], action) {
           var q = [];
           data.map(function(row){
              for(var i=0;i<len;i++){
-                  if(i == 2)
+                  if(i == 2 )
                   {
                     var urla = row[head[i]]["url"];
                     var stockStream$ = rxFetch(urla).json();
@@ -44,9 +44,8 @@ export default function(state = [], action) {
                         console.log("row=>",row);
                       }
                      );
-                    // var x = {};
-                    //     x['c']=row['c']; 
-                    //     row['c'] = x;
+                    
+                       // row['c']['c'] = row['c']['c'];
                   }
                 else{
                   var t = head[i];
@@ -56,7 +55,7 @@ export default function(state = [], action) {
                   row[head[i]] = x;
                 
                 }
-            }
+            } 
           });
         return (data);
         break;
