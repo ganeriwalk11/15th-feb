@@ -11,10 +11,12 @@ import { applyFunc } from '../actions/index';
 import rootReducer from '../reducers/index';
 import { postData } from '../actions/index';
 import { addData } from '../actions/index';
+import { deleteRow } from '../actions/index';
 import { addColData } from '../actions/index';
 import { checkIntegerAction } from '../actions/index';
 import { fetchUserFulfilled } from '../actions/index';
 import { fetchUrlData } from '../actions/index';
+import { writeUrl } from '../actions/index';
 import { stringColor } from '../actions/index';
 
 require("babel-polyfill");
@@ -70,30 +72,34 @@ class ActualData extends Component
                             var p = parseInt(depf[1],10) - 1;
                             var t = depf[0];
                             var f = dupdata[p][t]["fx"];
-                            me.props.applyF(t,f,p,dupdata, "blue");
-                        }); 
-                        
+                            console.log(t,p,f);
+                            me.checkBlur({h:{t}},p,head.indexOf(t),f);
+                        });                        
                     }  
                 }
                 else
                 {
                     if(target[0] == '=' && target[1] == '(' && target[target.length -1]  == ')')
                     {
+                        console.log("here");
                         if(target[2] == parseInt(target[2],10))
                         {
-                            let z=2,num="";
-                            while(target[z] !== '+' || target[z] !== '-' || target[z] !== ')')
+                            var z=2,num="";
+                            for(z=2;z<target.length;z++)
                             {
-                                console.log(target,z);
-                                //num=num+target[z];
-                                z = z+1;
+                                if(target[z] != '+' && target[z] != '-' && target[z] != ')')
+                                {
+                                    num=num+target[z];    
+                                }
+                                else
+                                    break;
                             }
                             num = Number(num);
                             var op1 = num;
                             if(target[z] == ')')
                             {
                                 target = num;
-                                this.props.stringColor(h.h,i,target);
+                                this.props.stringColor(h.h,i,target,"blue");
                             }
                             else
                             {
@@ -103,8 +109,8 @@ class ActualData extends Component
                                     z = z+1;
                                     if(target[z] == parseInt(target[z],10))
                                     {
-                                        let c=c+1,numb="";
-                                        while(target[c] !== ')')
+                                        let c=z,numb="";
+                                        while(target[c] != ')')
                                         {
                                             numb=numb+target[c++];
                                         }
@@ -114,7 +120,7 @@ class ActualData extends Component
                                             target = op1 + op2;
                                         else
                                             target = op1 - op2;
-                                        this.props.stringColor(h.h,i,target);
+                                        this.props.stringColor(h.h,i,target,"blue");
                                     }
                                     else if(alpha.indexOf(target[z]) >-1 && alpha.indexOf(target[z]) < len )
                                     {
@@ -126,37 +132,42 @@ class ActualData extends Component
                                         nu = Number(nu);
                                         if(dupdata[nu - 1])
                                         {
-                                            var op2i = nu;
+                                            var op2i = nu -1;
                                             var op2j = alpha.indexOf(target[z]);
                                             this.props.applyFunc(h.h,target,i,this.props.data,"blue",op1,"","","",op2i,op2j,operator);          
                                         }
                                         else
                                         {
-                                           this.props.stringColor(h.h,i,target); 
+                                           this.props.stringColor(h.h,i,target,"red"); 
                                         }
                                     }
                                     else
                                     {
-                                        this.props.stringColor(h.h,i,target);
+                                        this.props.stringColor(h.h,i,target,"red");
                                     }
                                 }
                                 else
                                 {
-                                    this.props.stringColor(h.h,i,target);
+                                    this.props.stringColor(h.h,i,target,"red");
                                 }
                             }
                         }
                         else if(alpha.indexOf(target[2]) >-1 && alpha.indexOf(target[2]) < len )
                         {
                                 let z=3,num="";
-                                while(target[z] !== '+' || target[z] !== '-' || target[z] !== ')')
+                               for(z=3;z<target.length;z++)
                                 {
-                                    num = num+target[z++];
+                                    if((target[z] !== '+') && (target[z] !== '-') && (target[z] !== ')'))
+                                    {
+                                        num=num+target[z];    
+                                    }
+                                    else
+                                        break;
                                 }
                                 num = Number(num);
                                 if(dupdata[num - 1])
                                 {
-                                    var op1i = num;
+                                    var op1i = num -1;
                                     var op1j = alpha.indexOf(target[2]);
                                     if(target[z] == ')')
                                     {
@@ -171,14 +182,14 @@ class ActualData extends Component
                                             z = z+1;
                                             if(target[z] == parseInt(target[z],10))
                                             {
-                                                let c=c+1,numb="";
+                                                let c=z,numb="";
                                                 while(target[c] !== ')')
                                                 {
                                                     numb=numb+target[c++];
                                                 }
                                                 numb = Number(numb);
                                                 var op2 = numb;
-                                                this.props.applyFunc(h.h,target,i,this.props.data,"blue","",op2,op1i,op1j,"","","");
+                                                this.props.applyFunc(h.h,target,i,this.props.data,"blue","",op2,op1i,op1j,"","",operator);
                                             }
                                             else if(alpha.indexOf(target[z]) >-1 && alpha.indexOf(target[z]) < len )
                                             {
@@ -190,40 +201,48 @@ class ActualData extends Component
                                                 nu = Number(nu);
                                                 if(dupdata[nu - 1])
                                                 {
-                                                    var op2i = nu;
+                                                    var op2i = nu - 1;
                                                     var op2j = alpha.indexOf(target[z]);
-                                                    this.props.applyF(h.h,target,i,"blue");          
+                                                    this.props.applyFunc(h.h,target,i,this.props.data,"blue","","",op1i,op1j,op2i,op2j,operator);          
                                                 }
                                                 else
                                                 {
-                                                    this.props.stringColor(h.h,i,target);   
+                                                    this.props.stringColor(h.h,i,target,"red");   
                                                 }
                                             }
                                             else
                                             {
-                                                this.props.stringColor(h.h,i,target);
+                                                this.props.stringColor(h.h,i,target,"red");
                                             }
                                         }
                                         else
                                         {
-                                            this.props.stringColor(h.h,i,target);
+                                            this.props.stringColor(h.h,i,target,"red");
                                         }
                                     }          
                                 }
                                 else
                                 {
-                                    this.props.stringColor(h.h,i,target);   
+                                    this.props.stringColor(h.h,i,target,"red");   
                                 }
                         }
                         else
                         {
-                            this.props.stringColor(h.h,i,target);
+                            this.props.stringColor(h.h,i,target,"red");
                         }
                 }
-                else
+                else if(target[0]=='u' && target[1]=='r' && target[2]=='l')
                 {
-                    this.props.stringColor(h.h,i,target);  
-                }   
+                    var regex = new RegExp("^(?!mailto:)(?:(?:http|https|ftp)://)(?:\\S+(?::\\S*)?@)?(?:(?:(?:[1-9]\\d?|1\\d\\d|2[01]\\d|22[0-3])(?:\\.(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])){2}(?:\\.(?:[0-9]\\d?|1\\d\\d|2[0-4]\\d|25[0-4]))|(?:(?:[a-z\\u00a1-\\uffff0-9]+-?)*[a-z\\u00a1-\\uffff0-9]+)(?:\\.(?:[a-z\\u00a1-\\uffff0-9]+-?)*[a-z\\u00a1-\\uffff0-9]+)*(?:\\.(?:[a-z\\u00a1-\\uffff]{2,})))|localhost)(?::\\d{2,5})?(?:(/|\\?|#)[^\\s]*)?$");
+                    if(regex.test(target))
+                    {
+                        this.props.writeUrl(i,h.h,target);
+                    }
+                }
+                else
+                    {
+                        this.props.stringColor(h.h,i,target,"red");
+                    }     
             } 
         } 
     }
@@ -274,6 +293,10 @@ class ActualData extends Component
         this.props.postData(dupdata);
     }
 
+    delRow = (i) =>
+    {
+        console.log("here",i);
+    }
 
     addRow = () =>
     {
@@ -336,7 +359,7 @@ class ActualData extends Component
                     >{dupdata[h]['value']}</td>
                 );   
             }))
-            return (<tr key={i}>{a}</tr>);
+            return (<tr key={i}>{a} <button style={{color:'red'}}  onClick={this.delRow(i)}>X</button></tr>);
         }
     }
 
@@ -373,9 +396,11 @@ function mapDispatchToProps(dispatch)
         applyF: bindActionCreators(applyF,dispatch),
         applyFunc: bindActionCreators(applyFunc,dispatch),
         addData: bindActionCreators(addData,dispatch),
+        deleteRow: bindActionCreators(deleteRow,dispatch),
         addColData: bindActionCreators(addColData,dispatch),
         inputEdit: bindActionCreators(inputEdit,dispatch),
         fetchUrlData: bindActionCreators(fetchUrlData, dispatch),
+        writeUrl: bindActionCreators(writeUrl, dispatch),
         stringColor: bindActionCreators(stringColor, dispatch)
     };
 }
