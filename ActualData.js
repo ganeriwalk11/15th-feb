@@ -7,6 +7,7 @@ import { Observable } from 'rxjs/Observable';
 
 import { inputEdit } from '../actions/validations';
 import { applyF } from '../actions/index';
+import { applyFunc } from '../actions/index';
 import rootReducer from '../reducers/index';
 import { postData } from '../actions/index';
 import { addData } from '../actions/index';
@@ -14,119 +15,274 @@ import { addColData } from '../actions/index';
 import { checkIntegerAction } from '../actions/index';
 import { fetchUserFulfilled } from '../actions/index';
 import { fetchUrlData } from '../actions/index';
+import { stringColor } from '../actions/index';
 
 require("babel-polyfill");
 
-
-class ActualData extends Component {
-    constructor(props) {
+class ActualData extends Component
+{
+    constructor(props)
+    {
         super(props);
         this.x = [];
+        this.fb={};
     }
 
-    componentDidMount(){
-        setInterval(() => {this.props.fetchUrlData(this.props.data)},5000);
+    componentDidMount()
+    {
+      //setInterval(() => {this.props.fetchUrlData(this.props.data)},800);    
     }
 
-    checkFocus(event){
+    checkFocus(event)
+    {
         this.x.push(event.target.innerText);
     }
 
-    checkBlur(h,i,j,event){
-        var head = Object.keys(this.props.data[0]);
-        let l = head.indexOf(h.h);
-        var target = event.target.innerText;
-        if(l <2 )
+    checkBlur(h,i,j,q,event)
+    {
+        var dupdata = this.props.data;
+        var me = this;
+        var head = Object.keys(dupdata[0]);
+        let len = head.length;
+        let alpha = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+        var target;
+        if(q !== "")
+            target = q;
+        else
+            target = event.target.innerText;
+       // Observable.of(target).if(() => target == parseInt(target,10), console.log("Number"),console.log("NO"));
+        if(dupdata[i][head[j]]["value"] != target)
         {
-            var a = event.target.innerText;
-            var head = h.h;
-            if(this.props.data[i][head][head] !== a)
+            if( this.x[this.x.length - 1] != target)
             {
-                if( this.x[this.x.length - 1] != a)
+                if(target == parseInt(target,10))
                 {
-                    this.props.checkIntegerAction(i,j,h,this.props.data,a);
+                    this.props.checkIntegerAction(i,h,target);
+                    if(dupdata[i][head[j]]["dep"].length)
+                    {
+                        var depformula = [];
+                        var deep = []; 
+                        depformula = dupdata[i][head[j]]["dep"];
+                        depformula.map(function(r){
+                            deep.push(r);
+                        })
+                        deep.map(function(depf){
+                            var p = parseInt(depf[1],10) - 1;
+                            var t = depf[0];
+                            var f = dupdata[p][t]["fx"];
+                            me.props.applyF(t,f,p,dupdata, "blue");
+                        }); 
+                        
+                    }  
                 }
-                if(this.props.data[i][head]["dep"] >-1)
+                else
                 {
-                    this.props.applyF(this.props.data[i]["d"]["fx"],this.props.data[i][head]["dep"],this.props.data,"red");
-                }       
-            }
-        }
+                    if(target[0] == '=' && target[1] == '(' && target[target.length -1]  == ')')
+                    {
+                        if(target[2] == parseInt(target[2],10))
+                        {
+                            let z=2,num="";
+                            while(target[z] !== '+' || target[z] !== '-' || target[z] !== ')')
+                            {
+                                console.log(target,z);
+                                //num=num+target[z];
+                                z = z+1;
+                            }
+                            num = Number(num);
+                            var op1 = num;
+                            if(target[z] == ')')
+                            {
+                                target = num;
+                                this.props.stringColor(h.h,i,target);
+                            }
+                            else
+                            {
+                                if(target[z] == '+' || target[z] == '-')
+                                {
+                                    var operator = target[z];
+                                    z = z+1;
+                                    if(target[z] == parseInt(target[z],10))
+                                    {
+                                        let c=c+1,numb="";
+                                        while(target[c] !== ')')
+                                        {
+                                            numb=numb+target[c++];
+                                        }
+                                        numb = Number(numb);
+                                        var op2 = numb;
+                                        if(operator == '+')
+                                            target = op1 + op2;
+                                        else
+                                            target = op1 - op2;
+                                        this.props.stringColor(h.h,i,target);
+                                    }
+                                    else if(alpha.indexOf(target[z]) >-1 && alpha.indexOf(target[z]) < len )
+                                    {
+                                        let k=z+1,nu="";
+                                        while(target[k] !== ')')
+                                        {
+                                            nu = nu+target[k++];
+                                        }
+                                        nu = Number(nu);
+                                        if(dupdata[nu - 1])
+                                        {
+                                            var op2i = nu;
+                                            var op2j = alpha.indexOf(target[z]);
+                                            this.props.applyFunc(h.h,target,i,this.props.data,"blue",op1,"","","",op2i,op2j,operator);          
+                                        }
+                                        else
+                                        {
+                                           this.props.stringColor(h.h,i,target); 
+                                        }
+                                    }
+                                    else
+                                    {
+                                        this.props.stringColor(h.h,i,target);
+                                    }
+                                }
+                                else
+                                {
+                                    this.props.stringColor(h.h,i,target);
+                                }
+                            }
+                        }
+                        else if(alpha.indexOf(target[2]) >-1 && alpha.indexOf(target[2]) < len )
+                        {
+                                let z=3,num="";
+                                while(target[z] !== '+' || target[z] !== '-' || target[z] !== ')')
+                                {
+                                    num = num+target[z++];
+                                }
+                                num = Number(num);
+                                if(dupdata[num - 1])
+                                {
+                                    var op1i = num;
+                                    var op1j = alpha.indexOf(target[2]);
+                                    if(target[z] == ')')
+                                    {
+                                        target = this.props.data[op1i][head[op1j]]['value'];
+                                        this.props.applyFunc(h.h,target,i,this.props.data,"blue","","",op1i,op1j,"","","");
+                                    }
+                                    else
+                                    {
+                                        if(target[z] == '+' || target[z] == '-')
+                                        {
+                                            var operator = target[z];
+                                            z = z+1;
+                                            if(target[z] == parseInt(target[z],10))
+                                            {
+                                                let c=c+1,numb="";
+                                                while(target[c] !== ')')
+                                                {
+                                                    numb=numb+target[c++];
+                                                }
+                                                numb = Number(numb);
+                                                var op2 = numb;
+                                                this.props.applyFunc(h.h,target,i,this.props.data,"blue","",op2,op1i,op1j,"","","");
+                                            }
+                                            else if(alpha.indexOf(target[z]) >-1 && alpha.indexOf(target[z]) < len )
+                                            {
+                                                let k=z+1,nu="";
+                                                while(target[k] !== ')')
+                                                {
+                                                    nu = nu+target[k++];
+                                                }
+                                                nu = Number(nu);
+                                                if(dupdata[nu - 1])
+                                                {
+                                                    var op2i = nu;
+                                                    var op2j = alpha.indexOf(target[z]);
+                                                    this.props.applyF(h.h,target,i,"blue");          
+                                                }
+                                                else
+                                                {
+                                                    this.props.stringColor(h.h,i,target);   
+                                                }
+                                            }
+                                            else
+                                            {
+                                                this.props.stringColor(h.h,i,target);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            this.props.stringColor(h.h,i,target);
+                                        }
+                                    }          
+                                }
+                                else
+                                {
+                                    this.props.stringColor(h.h,i,target);   
+                                }
+                        }
+                        else
+                        {
+                            this.props.stringColor(h.h,i,target);
+                        }
+                }
+                else
+                {
+                    this.props.stringColor(h.h,i,target);  
+                }   
+            } 
+        } 
+    }
+}
     
-    else{
-        this.checkFormulaBlur(h,i,target);
-    }
+    handleDoubleClick(event)
+    { 
+            let a = event.target;
+            let fxBar = document.getElementById("fbar");
+            let rowno = Number(a.className[1]);
+            let header = (a.className[0].toLowerCase());
+            let head = Object.keys(this.props.data[0]);
+            let data;
+            var he;
+            let stream$ = Observable.fromEvent(a,'dblclick');
+            stream$.subscribe((e) => { 
+                fxBar.className= a.id;  
+                if(this.props.data[rowno -1][header]["fx"])
+                {
+                    data = this.props.data[rowno -1][header]["fx"];
+                }
+                else
+                {   
+                    data = this.props.data[rowno -1][header]["value"];
+                }
+                this.props.inputEdit(data,a.className);
+                fxBar.focus(); 
+            });
+            var stream1$ = Observable.fromEvent(fxBar,'keyup')
+                           .map(function(e){return e.target;})
+            stream1$.subscribe((elem) => {
+                var p = document.getElementById(elem.className);
+                    p.innerText = elem.innerText;
+                    this.fb.he = {h:header};
+                    this.fb.row = rowno - 1;
+                    this.fb.head = head.indexOf(header);
+            });          
+        }
+
+    fxBlur(event){
+        this.checkBlur(this.fb.he,this.fb.row,this.fb.head,event.target.innerText);
+        event.target.innerText = "";
     }
 
-        checkFormulaBlur(h,i,target){
-        var a = target;
-        if(a == "")
-        return;
-        //console.log(a,i);
-        var color;
-        let alpha  = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
-            if(a[0]!= '=' || a[1] != '(' || a[a.length - 1]!=')' )
-            {
-                console.log("Invalid format, the valid format is: =(op1 operand op2)");
-            }
-            else if( alpha.indexOf(a[2])>1 || alpha.indexOf(a[2]) == -1 || alpha.indexOf(a[5])>1 || alpha.indexOf(a[5])==-1 || a[3]-1>this.props.data.length || a[6]-1>this.props.data.length){
-                console.log("Operands are out of bounds");
-            }
-            else{
-                color = "red";
-                this.tempfunc(h.h,a,i,this.props.data,color);
-               // setTimeout((this.props.applyF(a,i,this.props.data,"black")),3000);
-                
-            }
-    }
-
-    tempfunc(h,a,b,c,d){
-        //console.log(h,a,b,c,d);
-          this.props.applyF(h,a,b,c,d);  
-    }
-
-   
-
- refCallback(item) {
-    if (item) {  
-     //ReactDOM.findDOMNode(item).ondblclick = this.handleDoubleClick;
-     var a = ReactDOM.findDOMNode(item);
-     var fxBar = this.refs.theInput;
-     a.contentEditable = true;
-     var stream$ = Observable.fromEvent(a,'dblclick');
-     stream$.subscribe((e) => {
-          var rowno = Number(e.target.className[1]);
-          var header = (e.target.className[0].toLowerCase());
-          if(this.props.data[rowno -1][header]["fx"]) 
-            var data = this.props.data[rowno -1][header]["fx"];
-          else
-              var data = this.props.data[rowno -1][header][header];
-          this.props.inputEdit(data);
-        });
-    }
-  }
 
     saveData(){
-        var dats = this.props.data;
-        this.props.postData(dats[0]);
+        var dupdata = this.props.data;
+        this.props.postData(dupdata);
     }
 
 
-    addRow = () => {
-        let alpha = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
-        let dupdata = this.props.data;
-        let head = Object.keys(dupdata[0]);
-        let add = {};
-        head.map(function(header){
-            if(header == 'd')
-            add[header] = {};
-            else
-            add[header] =  "";
-        })
-        this.props.addData(add);
+    addRow = () =>
+    {
+        var head = Object
+        this.props.addData(this.props.data);
     }
 
-    addColumn = () => {
+    addColumn = () =>
+    {
         let alpha = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
         let dupdata = this.props.data;
         let head = Object.keys(dupdata[0]);
@@ -134,89 +290,64 @@ class ActualData extends Component {
         this.props.addColData(col);
     }
 
-    handleChange(event){
-       // this.props.vad = event.target.innerText;
-       this.props.data
-    }
-    
-    // submitForm = (e) => {
-    //     e.preventDefault();
-    //     var fx = ReactDOM.findDOMNode(this.refs.theInput).value;
-    //     var head = Object.keys(this.props.data);
-    //     var l = head.length;
-    //     this.props.applyF(fx,l);
-    // }
-
- renderHead = (data) => {
+    renderHead = (data) => 
+    {
         var dupData = data;
         if(dupData[0])
-        {
-        var head = Object.keys(dupData[0]);
-        var len = head.length;
-        if(len>0)
-        {
-        let alpha = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
-        var a = [<th key="blank"></th>];
-        for(var i=0;i<len;i++){
+        {   
+            var head = Object.keys(dupData[0]);
+            var len = head.length;
+            let alpha = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+            var a = [<th key="blank"></th>];
+            for(var i=0;i<len;i++)
+            {
                 a.push(<th key={i}>{alpha[i]}</th>);
-        }
-        // this.x.push(1);
-             return (<tr key="header">{a}</tr>);
-        }
+            }
+            return (<tr key="header">{a}</tr>);
         }
     }
 
-    renderData = (data,i) => {
-        console.log("data=>",data);
+    renderData = (row,i) =>
+    {
         let alpha = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
         var b = [];
         var a = [];
         var q = [];
         var y = [];
-        var dupdata = data;
+        var dupdata = row;
         var head = Object.keys(dupdata);
         let len = dupdata.length;
         if(len != 0)
         {
             a.push(i+1);
-            a.push(head.map((h,j) => {
-            var s = alpha[j] + (i+1);
-            if(dupdata[h] != "")
-                y = dupdata[h][h];
-                else{
-                    q = h;
-                    var z = {};
-                    z[h] = "";
-                    dupdata[h] = z;
-                    y = dupdata[h][h];
-                }      
-                //console.log(h,y);
-                return (<td
-                ref={function(e){if(e) e.contentEditable=true;}}
-                key={s}
-                ref={this.refCallback.bind(this)}
-                style = {{color:dupdata[h]['color']}}
-                 className={s}
-                onFocus = {this.checkFocus.bind(this)}
-                onBlur = {this.checkBlur.bind(this,{h},i,j)}
-            >{y}</td>);   
-        }))
-
-        return (<tr key={i}>{a}</tr>);
+            a.push(head.map((h,j) =>
+            {
+                var s = alpha[j] + (i+1);
+                return (
+                    <td
+                        ref={function(e){if(e) e.contentEditable=true;}}
+                        key={s}
+                        id={s}
+                        style = {{color:dupdata[h]['color']}}
+                        className={s}
+                        onFocus = {this.checkFocus.bind(this)}
+                        onBlur = {this.checkBlur.bind(this,{h},i,j,"")}
+                        onClick = {this.handleDoubleClick.bind(this)}
+                    >{dupdata[h]['value']}</td>
+                );   
+            }))
+            return (<tr key={i}>{a}</tr>);
+        }
     }
-}
 
-
-    render() {
-        return (
+    render()
+    {
+        return(
             <div>
                 <button id="save" onClick={this.saveData.bind(this)}>SAVE</button>
                 <button id="addRow" onClick={this.addRow.bind(this)}>ADD ROW</button>
                 <button id="addCol" onClick={this.addColumn.bind(this)}>ADD COLUMN</button>
-                <form onSubmit={this.submitForm}>
-                    <input ref="theInput" placeholder="=fx" value= {this.props.vad} onChange={this.handleChange.bind(this)}/>
-                    <button type="Submit">Submit</button>
-                </form>
+                <table><tr><td>fxbar:</td><td contentEditable={true} id="fbar" ref={function(e){if(e != null) e.contentEditable=true;}} onBlur={this.fxBlur.bind(this)}>{this.props.vad}</td></tr></table>
                 <table>
                     <thead>{this.renderHead(this.props.data)}</thead>
                     <tbody>{this.props.data.map(this.renderData)}</tbody>
@@ -226,25 +357,27 @@ class ActualData extends Component {
     }
 }
 
-function mapStateToProps(state) {
-    return {
+function mapStateToProps(state)
+{
+    return{
         data: state.data,
         vad : state.vad
     };
 }
 
-function mapDispatchToProps(dispatch) {
-    return {
+function mapDispatchToProps(dispatch)
+{
+    return{
         checkIntegerAction: bindActionCreators(checkIntegerAction, dispatch),
         postData: bindActionCreators(postData,dispatch),
         applyF: bindActionCreators(applyF,dispatch),
+        applyFunc: bindActionCreators(applyFunc,dispatch),
         addData: bindActionCreators(addData,dispatch),
         addColData: bindActionCreators(addColData,dispatch),
         inputEdit: bindActionCreators(inputEdit,dispatch),
-        fetchUserFulfilled: bindActionCreators(fetchUserFulfilled,dispatch),
-        fetchUrlData: bindActionCreators(fetchUrlData, dispatch)
+        fetchUrlData: bindActionCreators(fetchUrlData, dispatch),
+        stringColor: bindActionCreators(stringColor, dispatch)
     };
 }
-
 
 export default connect(mapStateToProps,mapDispatchToProps)(ActualData);
