@@ -6,6 +6,7 @@ import { POST_DATA } from '../actions/index';
 import { FETCH_DATA } from '../actions/index';
 import { FETCH_FUL } from '../actions/index';
 import { FETCH_FULL } from '../actions/index';
+import { DELETE_ROW } from '../actions/index';
 import { ADD_DATA } from '../actions/index';
 import { ADD_COL } from '../actions/index';
 import { CHECK_INTEGER } from '../actions/index';
@@ -13,6 +14,7 @@ import { APPLY_FUN } from '../actions/index';
 import { APPLY_FUNCTION } from '../actions/index';
 import { applyF } from '../actions/index';
 import { S_COLOR } from '../actions/index';
+import { INSERTUrl } from '../actions/index';
 
 const rxFetch = require('rxjs-fetch');
 
@@ -35,7 +37,7 @@ export default function(state = [], action)
       break;
     }
 
-    case FETCH_FULL:
+     case FETCH_FULL:
     {
       var head = Object.keys(action.payload[0]);
       var len = head.length;
@@ -45,7 +47,7 @@ export default function(state = [], action)
       Observable.from(data)
         .concatMap(function(row,i)
         {
-          var x,y;
+          var x=[],y;
           head.map(function(h,j){
             if(row[h]['url'])
             {
@@ -59,7 +61,11 @@ export default function(state = [], action)
         .subscribe(function(response)
         {
           data[q][w]['value'] = response['a'];
-        });
+        },function(err)
+          {
+            data[q][w]['value']= "Error!";
+            data[q][w]['url']= "";
+          });
        return data;
         break;
     }
@@ -73,19 +79,28 @@ export default function(state = [], action)
         let add = {};
         head.map(function(header)
         {
-          add[header] = {"value":"","color":"","fx":"","dep":{},"url":""};
+          add[header] = {"value":"","color":"","fx":"","dep":[],"url":""};
         })
-        data = data.concat(add);
+        data.push(add);
         return data;
+        break;
       }
 
       case ADD_COL:
       {
         var data = [...state];
         data.map(function(row){
-          row[action.payload.toLowerCase()] = {"value":"","color":"","fx":"","dep":{},"url":""};
+          row[action.payload.toLowerCase()] = {"value":"","color":"","fx":"","dep":[],"url":""};
         });
         return data;
+        break;
+      }
+
+      case DELETE_ROW:
+      {
+        
+        return state;
+        break;
       }
 
        case CHECK_INTEGER:
@@ -97,6 +112,7 @@ export default function(state = [], action)
          data[i][h]['color'] = 'green';
          data[i][h]['value'] = action.payload.target;    
          return data;
+         break;
       }
       
       case S_COLOR:
@@ -104,15 +120,37 @@ export default function(state = [], action)
         var data = [...state];
         var i = action.payload.i;
         var h = action.payload.h;
-        data[i][h]['color'] = 'red';
+        var color = action.payload.color;
+        data[i][h]['color'] = color;
         data[i][h]['value'] = action.payload.target;
+        return (data);
+        break;
+      }
+
+      case INSERTUrl:
+      {
+        var data = [...state];
+        var i = action.payload.i;
+        var h = action.payload.h;
+        var urla = action.payload.target;
+        data[i][h]['url'] = urla;
         return (data);
         break;
       }
 
       case POST_DATA:
       {
-        return state;
+        var data = [...state];
+        var head = Object.keys(data[0]);
+        data.map(function(row){
+          head.map(function(header,j){
+            row[header]['color'] = "";
+            row[header]['fx'] = "";
+            row[header]['dep'] = [];
+          });
+        });
+        return data;
+        break;
       }
 
       case APPLY_FUN:
@@ -134,6 +172,7 @@ export default function(state = [], action)
         data[i][header]["color"]  = color;
         data[i][header]['value'] = ans;
         return data;
+        break;
       }
 
       case APPLY_FUNCTION:
@@ -156,7 +195,9 @@ export default function(state = [], action)
         data[i][header]["fx"] = a;
         data[i][header]["color"]  = color;
         data[i][header]['value'] = ans;
+        console.log(data);
         return data;
+        break;
       }
   }
   return state;
