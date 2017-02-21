@@ -8,11 +8,14 @@ export const FETCH_DATA = 'FETCH_DATA';
 export const FETCH_FUL = 'FETCH_USER_FULFILLED';
 export const FETCH_FULL = 'FETCH_USER_F';
 export const ADD_DATA = 'ADD_DATA';
+export const DELETE_ROW = 'DELETE_ROW';
 export const ADD_COL = 'ADD_COL';
 export const CHECK_INTEGER = 'CHECK_INTEGER';
 export const APPLY_FUN = 'APPLY_FUN';
 export const APPLY_FUNCTION = 'APPLY_FUNCTION';
 export const S_COLOR = 'S_COLOR';
+export const INSERTUrl = 'INSERTUrl';
+
 
 const url = 'src/jsonData/mainData.json';
 const urla = 'http://localhost:5000';
@@ -51,6 +54,14 @@ export function postData(data) {
   }
 };
 
+export function deleteRow()
+{
+ return {
+    type: DELETE_ROW,
+    payload 
+  };
+};
+
 export function addData(dupdata) {
  return {
     type: ADD_DATA,
@@ -79,10 +90,23 @@ export function checkIntegerAction(i,h,target)
   };
 };
 
-export function stringColor(h,i,target) 
+export function stringColor(h,i,target,color) 
 {
   return {
     type: S_COLOR,
+    payload: {
+      i:i,
+      h:h,
+      target:target,
+      color: color
+    }
+  };
+};
+
+export function writeUrl(i,h,target) 
+{
+  return {
+    type:INSERTUrl,
     payload: {
       i:i,
       h:h,
@@ -186,7 +210,11 @@ export function applyFunc(h,a,i,data,color,op1,op2,op1i,op1j,op2i,op2j,operator)
 {
   var a = a;
   var data = data;
-  var header = h;
+  var header;
+  if(typeof(h) === 'object')
+  header = h.t;
+  else
+  header = h;
   var color = color;
   let alpha = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
   var i = i;
@@ -212,11 +240,23 @@ export function applyFunc(h,a,i,data,color,op1,op2,op1i,op1j,op2i,op2j,operator)
     if(operator == '+')
       ans = op2 + parseInt(data[op1i][head[op1j]]['value'],10);
     else
-      ans = op2 - parseInt(data[op1i][head[op1j]]['value'],10);
+      ans = parseInt(data[op1i][head[op1j]]['value'],10) - op2; 
   }
   else if(op2i === "" )
   {
       ans = parseInt(data[op1i][head[op1j]]['value'],10)
+  }
+  else
+  {
+    if(operator == '+')
+    {
+      ans = parseInt(data[op1i][head[op1j]]['value'],10) + parseInt(data[op2i][head[op2j]]['value'],10);
+    }
+    else
+    {
+      ans = parseInt(data[op1i][head[op1j]]['value'],10) - parseInt(data[op2i][head[op2j]]['value'],10);
+          // console.log((data[op1i][head[op1j]][head[op1j]],10),parseInt(data[op2i][head[op2j]][head[op2j]],10),ans);
+    }
   }
   
   var response = {
