@@ -29,7 +29,7 @@ export default function(state ="", action) {
         return action.payload;
 
     case f_bar:{
-        return state;
+        return action.payload;
     }
 
     defualt: return state;
