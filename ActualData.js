@@ -17,6 +17,7 @@ import { checkIntegerAction } from '../actions/index';
 import { fetchUserFulfilled } from '../actions/index';
 import { fetchUrlData } from '../actions/index';
 import { writeUrl } from '../actions/index';
+import { runUrl } from '../actions/index';
 import { stringColor } from '../actions/index';
 
 require("babel-polyfill");
@@ -32,6 +33,18 @@ class ActualData extends Component
 
     componentDidMount()
     {
+        var dupdata = this.props.data;
+        if(dupdata[0])
+        var head = Object.keys(dupdata[0]);
+        console.log("dsa");
+        dupdata.map(function(row,i){
+            head.map(function(header,j){
+                if(row[header]["url"].length>0)
+                {
+                    this.checkBlur({"h":header},i,j,row[header]["url"]);                    
+                }
+            })
+        });
       //setInterval(() => {this.props.fetchUrlData(this.props.data)},800);    
     }
 
@@ -40,15 +53,16 @@ class ActualData extends Component
         this.x.push(event.target.innerText);
     }
 
+
     checkBlur(h,i,j,q,event)
-    {
+    {console.log("here");
         var dupdata = this.props.data;
         var me = this;
         var head = Object.keys(dupdata[0]);
         let len = head.length;
         let alpha = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
         var target;
-        if(q !== "")
+        if(q!="zaq")
             target = q;
         else
             target = event.target.innerText;
@@ -57,7 +71,7 @@ class ActualData extends Component
         {
             if( this.x[this.x.length - 1] != target)
             {
-                if(target == parseInt(target,10))
+                if(target == parseInt(target,10) || target == "")
                 {
                     this.props.checkIntegerAction(i,h,target);
                     if(dupdata[i][head[j]]["dep"].length)
@@ -71,8 +85,8 @@ class ActualData extends Component
                         deep.map(function(depf){
                             var p = parseInt(depf[1],10) - 1;
                             var t = depf[0];
+                            debugger;
                             var f = dupdata[p][t]["fx"];
-                            console.log(t,p,f);
                             me.checkBlur({h:{t}},p,head.indexOf(t),f);
                         });                        
                     }  
@@ -81,7 +95,6 @@ class ActualData extends Component
                 {
                     if(target[0] == '=' && target[1] == '(' && target[target.length -1]  == ')')
                     {
-                        console.log("here");
                         if(target[2] == parseInt(target[2],10))
                         {
                             var z=2,num="";
@@ -171,7 +184,6 @@ class ActualData extends Component
                                     var op1j = alpha.indexOf(target[2]);
                                     if(target[z] == ')')
                                     {
-                                        target = this.props.data[op1i][head[op1j]]['value'];
                                         this.props.applyFunc(h.h,target,i,this.props.data,"blue","","",op1i,op1j,"","","");
                                     }
                                     else
@@ -234,10 +246,17 @@ class ActualData extends Component
                 else if(target[0]=='u' && target[1]=='r' && target[2]=='l')
                 {
                     var regex = new RegExp("^(?!mailto:)(?:(?:http|https|ftp)://)(?:\\S+(?::\\S*)?@)?(?:(?:(?:[1-9]\\d?|1\\d\\d|2[01]\\d|22[0-3])(?:\\.(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])){2}(?:\\.(?:[0-9]\\d?|1\\d\\d|2[0-4]\\d|25[0-4]))|(?:(?:[a-z\\u00a1-\\uffff0-9]+-?)*[a-z\\u00a1-\\uffff0-9]+)(?:\\.(?:[a-z\\u00a1-\\uffff0-9]+-?)*[a-z\\u00a1-\\uffff0-9]+)*(?:\\.(?:[a-z\\u00a1-\\uffff]{2,})))|localhost)(?::\\d{2,5})?(?:(/|\\?|#)[^\\s]*)?$");
-                    if(regex.test(target))
+                   
+                    var urlTest = target.slice(4,target.indexOf(','));
+                    var timer = target.slice(target.indexOf(',')+1,target.indexOf(')'));
+                    if(regex.test(urlTest))
                     {
-                        this.props.writeUrl(i,h.h,target);
+                        this.props.writeUrl(i,h.h,target,timer);
+                        this.props.runUrl(i,h.h);
+                        setInterval(() => {this.props.runUrl(i,h.h)},timer);
                     }
+                    else
+                        console.log("BOoo");
                 }
                 else
                     {
@@ -258,11 +277,15 @@ class ActualData extends Component
             let data;
             var he;
             let stream$ = Observable.fromEvent(a,'dblclick');
-            stream$.subscribe((e) => { 
-                fxBar.className= a.id;  
+            stream$.subscribe((e) => {
+                fxBar.className= a.id;
                 if(this.props.data[rowno -1][header]["fx"])
                 {
                     data = this.props.data[rowno -1][header]["fx"];
+                }
+                else if(this.props.data[rowno -1][header]["url"])
+                {
+                    data = this.props.data[rowno -1][header]["url"];
                 }
                 else
                 {   
@@ -295,12 +318,11 @@ class ActualData extends Component
 
     delRow = (i) =>
     {
-        console.log("here",i);
+        this.props.deleteRow(i);
     }
 
     addRow = () =>
     {
-        var head = Object
         this.props.addData(this.props.data);
     }
 
@@ -340,7 +362,7 @@ class ActualData extends Component
         var dupdata = row;
         var head = Object.keys(dupdata);
         let len = dupdata.length;
-        if(len != 0)
+        if(len >= 1 )
         {
             a.push(i+1);
             a.push(head.map((h,j) =>
@@ -354,12 +376,13 @@ class ActualData extends Component
                         style = {{color:dupdata[h]['color']}}
                         className={s}
                         onFocus = {this.checkFocus.bind(this)}
-                        onBlur = {this.checkBlur.bind(this,{h},i,j,"")}
+                        onBlur = {this.checkBlur.bind(this,{h},i,j,"zaq")}
                         onClick = {this.handleDoubleClick.bind(this)}
                     >{dupdata[h]['value']}</td>
                 );   
-            }))
-            return (<tr key={i}>{a} <button style={{color:'red'}}  onClick={this.delRow(i)}>X</button></tr>);
+            }));
+            a.push(<button style={{color:'red'}}  onClick={() =>{this.delRow(i)}}>X</button>);
+            return (<tr key={i}>{a}</tr>);
         }
     }
 
@@ -401,6 +424,7 @@ function mapDispatchToProps(dispatch)
         inputEdit: bindActionCreators(inputEdit,dispatch),
         fetchUrlData: bindActionCreators(fetchUrlData, dispatch),
         writeUrl: bindActionCreators(writeUrl, dispatch),
+        runUrl: bindActionCreators(runUrl, dispatch),
         stringColor: bindActionCreators(stringColor, dispatch)
     };
 }
