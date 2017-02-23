@@ -23,13 +23,16 @@ export default function(state ="", action) {
                 }
             }
         }
+        break;
     }
 
     case fx_bar:
         return action.payload;
+        break;
 
     case f_bar:{
         return action.payload;
+        break;
     }
 
     defualt: return state;
