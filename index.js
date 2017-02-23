@@ -15,10 +15,11 @@ export const APPLY_FUN = 'APPLY_FUN';
 export const APPLY_FUNCTION = 'APPLY_FUNCTION';
 export const S_COLOR = 'S_COLOR';
 export const INSERTUrl = 'INSERTUrl';
-
+export const RUN_URL = 'RUN_URL';
 
 const url = 'src/jsonData/mainData.json';
-const urla = 'http://localhost:5000';
+const urla = 'http://localhost:5000/';
+
 export const fetchUserEpic = action$ =>
   action$.ofType(FETCH_DATA)
     .mergeMap(action =>
@@ -54,11 +55,11 @@ export function postData(data) {
   }
 };
 
-export function deleteRow()
+export function deleteRow(rowno)
 {
  return {
     type: DELETE_ROW,
-    payload 
+    payload : rowno
   };
 };
 
@@ -103,17 +104,30 @@ export function stringColor(h,i,target,color)
   };
 };
 
-export function writeUrl(i,h,target) 
+export function writeUrl(i,h,urlTest,timer) 
 {
   return {
     type:INSERTUrl,
     payload: {
       i:i,
       h:h,
-      target:target
+      urlTest:urlTest,
+      timer:timer
     }
   };
 };
+
+export function runUrl(i,h) 
+{
+  return {
+    type:RUN_URL,
+    payload: {
+      i:i,
+      h:h
+    }
+  };
+};
+
 
 // export const applyFunctionEpic = action$ =>
 //   action$.ofType(APPLY_FORMULA)
@@ -187,7 +201,6 @@ export function applyF(h,a,i,data,color)
   else
   {
     ans = parseInt(data[op1i][head[op1j]]['value'],10) - parseInt(data[op2i][head[op2j]]['value'],10);
-         // console.log((data[op1i][head[op1j]][head[op1j]],10),parseInt(data[op2i][head[op2j]][head[op2j]],10),ans);
   }
   var response = {
           op1i: op1i,
@@ -231,31 +244,64 @@ export function applyFunc(h,a,i,data,color,op1,op2,op1i,op1j,op2i,op2j,operator)
   if(op1 !== "")
   {
     if(operator == '+')
-      ans = op1 + parseInt(data[op2i][head[op2j]]['value'],10);
-    else
-      ans = op1 - parseInt(data[op2i][head[op2j]]['value'],10);
-  }
-  else if(op2 !== "")
-  {
-    if(operator == '+')
-      ans = op2 + parseInt(data[op1i][head[op1j]]['value'],10);
-    else
-      ans = parseInt(data[op1i][head[op1j]]['value'],10) - op2; 
-  }
-  else if(op2i === "" )
-  {
-      ans = parseInt(data[op1i][head[op1j]]['value'],10)
-  }
-  else
-  {
-    if(operator == '+')
     {
-      ans = parseInt(data[op1i][head[op1j]]['value'],10) + parseInt(data[op2i][head[op2j]]['value'],10);
+      if(parseInt(data[op2i][head[op2j]]['value'],10))
+        ans = op1 + parseInt(data[op2i][head[op2j]]['value'],10);
+      else
+         ans = op1 + 0;
     }
     else
     {
-      ans = parseInt(data[op1i][head[op1j]]['value'],10) - parseInt(data[op2i][head[op2j]]['value'],10);
-          // console.log((data[op1i][head[op1j]][head[op1j]],10),parseInt(data[op2i][head[op2j]][head[op2j]],10),ans);
+      if(parseInt(data[op2i][head[op2j]]['value'],10))
+        ans = op1 - parseInt(data[op2i][head[op2j]]['value'],10);
+      else
+         ans = op1 - 0;
+    }
+  }
+
+  else if(op2 !== "")
+  {
+    if(operator == '+')
+    {
+      if(parseInt(data[op1i][head[op1j]]['value'],10))
+        ans = op2 + parseInt(data[op1i][head[op1j]]['value'],10);
+      else
+         ans = op2 + 0;
+    }  
+    else
+    {
+      if(parseInt(data[op1i][head[op1j]]['value'],10))
+        ans = parseInt(data[op1i][head[op1j]]['value'],10) - op2;
+      else
+         ans = 0 - op2;
+    }
+  }
+
+  else if(op2i === "" )
+  {
+      if(parseInt(data[op1i][head[op1j]]['value'],10))
+        ans = parseInt(data[op1i][head[op1j]]['value'],10)
+      else
+        ans = 0;
+  }
+  else
+  {
+    var operator1,operator2;
+    if(parseInt(data[op1i][head[op1j]]['value'],10))
+      operator1  = parseInt(data[op1i][head[op1j]]['value'],10);
+    else
+      operator1 = 0;
+    if(parseInt(data[op2i][head[op2j]]['value'],10))
+      operator2  = parseInt(data[op2i][head[op2j]]['value'],10);
+    else
+      operator2 = 0;
+    if(operator == '+')
+    {
+      ans = operator1 + operator2;
+    }
+    else
+    {
+      ans = operator1 - operator2;
     }
   }
   
