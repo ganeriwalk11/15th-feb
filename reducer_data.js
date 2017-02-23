@@ -15,6 +15,7 @@ import { APPLY_FUNCTION } from '../actions/index';
 import { applyF } from '../actions/index';
 import { S_COLOR } from '../actions/index';
 import { INSERTUrl } from '../actions/index';
+import { RUN_URL } from '../actions/index';
 
 const rxFetch = require('rxjs-fetch');
 
@@ -30,8 +31,10 @@ export default function(state = [], action)
 
     case FETCH_FUL:
     {
+      if(action.payload[0])
+      {
       var head = Object.keys(action.payload[0]);
-      var len = head.length;
+      var len = head.length;}
       var data = action.payload;
       return (data);
       break;
@@ -39,6 +42,7 @@ export default function(state = [], action)
 
      case FETCH_FULL:
     {
+      
       var head = Object.keys(action.payload[0]);
       var len = head.length;
       var data = [...state];
@@ -73,15 +77,19 @@ export default function(state = [], action)
       case ADD_DATA:
       { 
         var data = [...state];
-        let alpha = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
-        let dupdata = action.payload;
-        let head = Object.keys(dupdata[0]);
-        let add = {};
+        var alpha = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+        var head;
+        if(data[0])        
+          head = Object.keys(data[0]);
+        else
+          head = ['a'];
+        var add = {};
         head.map(function(header)
         {
           add[header] = {"value":"","color":"","fx":"","dep":[],"url":""};
-        })
+        });
         data.push(add);
+        console.log(data);
         return data;
         break;
       }
@@ -98,8 +106,11 @@ export default function(state = [], action)
 
       case DELETE_ROW:
       {
-        
-        return state;
+        var data = [...state];
+        var rowNo = action.payload;
+        data.splice(rowNo,1);
+
+        return data;
         break;
       }
 
@@ -123,7 +134,7 @@ export default function(state = [], action)
         var color = action.payload.color;
         data[i][h]['color'] = color;
         data[i][h]['value'] = action.payload.target;
-        return (data);
+        return data;
         break;
       }
 
@@ -132,9 +143,30 @@ export default function(state = [], action)
         var data = [...state];
         var i = action.payload.i;
         var h = action.payload.h;
-        var urla = action.payload.target;
+        var urla = action.payload.urlTest;
+        var timer = action.payload.timer;
         data[i][h]['url'] = urla;
-        return (data);
+        return data;
+        break;
+      }
+
+      case RUN_URL:
+      {
+        var data = [...state];
+        var i = action.payload.i;
+        var h = action.payload.h;
+        var target = data[i][h]["url"];
+        var urlTest = target.slice(4,target.indexOf(','));
+        var timer = target.slice(target.indexOf(',')+1,target.indexOf(')'));
+        
+        var  urlStream$ = rxFetch(urlTest).json();
+        var stream2$ = urlStream$.map(function(res){return res;});
+        stream2$.subscribe(function(val){
+          data[i][h]['value'] = val["a"];
+          return data;
+        });
+
+        return data;
         break;
       }
 
@@ -145,8 +177,6 @@ export default function(state = [], action)
         data.map(function(row){
           head.map(function(header,j){
             row[header]['color'] = "";
-            row[header]['fx'] = "";
-            row[header]['dep'] = [];
           });
         });
         return data;
@@ -195,7 +225,6 @@ export default function(state = [], action)
         data[i][header]["fx"] = a;
         data[i][header]["color"]  = color;
         data[i][header]['value'] = ans;
-        console.log(data);
         return data;
         break;
       }
