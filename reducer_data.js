@@ -160,12 +160,12 @@ export default function(state = [], action)
         var timer = target.slice(target.indexOf(',')+1,target.indexOf(')'));
         
         var  urlStream$ = rxFetch(urlTest).json();
+       // console.log(urlStream$);
         var stream2$ = urlStream$.map(function(res){return res;});
         stream2$.subscribe(function(val){
           data[i][h]['value'] = val["a"];
-          return data;
         });
-
+        //console.log(data[i][h]["value"]);
         return data;
         break;
       }
