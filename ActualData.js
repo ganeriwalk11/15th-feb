@@ -19,6 +19,7 @@ import { fetchUrlData } from '../actions/index';
 import { writeUrl } from '../actions/index';
 import { runUrl } from '../actions/index';
 import { stringColor } from '../actions/index';
+import { fetchData } from '../actions/index';
 
 require("babel-polyfill");
 
@@ -29,24 +30,40 @@ class ActualData extends Component
         super(props);
         this.x = [];
         this.fb={};
+        this.flag;
     }
 
-    componentDidMount()
+    componentWillMount()
     {
+        this.props.fetchData();
+        console.log("ced");
+    }
+
+    componentDidUpdate()
+    {
+        var me =this;
+    if(!(me.flag))
+    {
+    //debugger;
+    console.log("here");
         var dupdata = this.props.data;
+        //console.log(dupdata);   
         if(dupdata[0])
         var head = Object.keys(dupdata[0]);
-        console.log("dsa");
+                //console.log(head);
         dupdata.map(function(row,i){
             head.map(function(header,j){
                 if(row[header]["url"].length>0)
                 {
-                    this.checkBlur({"h":header},i,j,row[header]["url"]);                    
+                           // console.log(row[header]["url"]);
+                    me.checkBlur({"h":header},i,j,row[header]["url"]);                    
                 }
             })
         });
       //setInterval(() => {this.props.fetchUrlData(this.props.data)},800);    
     }
+    me.flag = 1;    
+}
 
     checkFocus(event)
     {
@@ -55,7 +72,7 @@ class ActualData extends Component
 
 
     checkBlur(h,i,j,q,event)
-    {console.log("here");
+    {
         var dupdata = this.props.data;
         var me = this;
         var head = Object.keys(dupdata[0]);
@@ -112,7 +129,10 @@ class ActualData extends Component
                             if(target[z] == ')')
                             {
                                 target = num;
+                                debugger;
                                 this.props.stringColor(h.h,i,target,"blue");
+                                var me = this;
+                                setTimeout(me.props.stringColor(h.h,i,target,"red"),10000);
                             }
                             else
                             {
@@ -355,15 +375,10 @@ class ActualData extends Component
     renderData = (row,i) =>
     {
         let alpha = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
-        var b = [];
-        var a = [];
-        var q = [];
-        var y = [];
         var dupdata = row;
         var head = Object.keys(dupdata);
         let len = dupdata.length;
-        if(len >= 1 )
-        {
+        var a = [];
             a.push(i+1);
             a.push(head.map((h,j) =>
             {
@@ -383,7 +398,6 @@ class ActualData extends Component
             }));
             a.push(<button style={{color:'red'}}  onClick={() =>{this.delRow(i)}}>X</button>);
             return (<tr key={i}>{a}</tr>);
-        }
     }
 
     render()
@@ -414,6 +428,7 @@ function mapStateToProps(state)
 function mapDispatchToProps(dispatch)
 {
     return{
+        fetchData: bindActionCreators(fetchData, dispatch), 
         checkIntegerAction: bindActionCreators(checkIntegerAction, dispatch),
         postData: bindActionCreators(postData,dispatch),
         applyF: bindActionCreators(applyF,dispatch),
