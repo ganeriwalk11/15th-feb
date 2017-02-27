@@ -4,10 +4,10 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import Rx from "rxjs";
 import { Observable } from 'rxjs/Observable';
+import rootReducer from '../reducers/index';
 
 import { inputEdit } from '../actions/validations';
 import { applyFunc } from '../actions/index';
-import rootReducer from '../reducers/index';
 import { postData } from '../actions/index';
 import { addData } from '../actions/index';
 import { deleteRow } from '../actions/index';
@@ -19,6 +19,7 @@ import { fetchUrlData } from '../actions/index';
 import { writeUrl } from '../actions/index';
 import { runUrl } from '../actions/index';
 import { stringColor } from '../actions/index';
+import { changeColor } from '../actions/index';
 import { fetchData } from '../actions/index';
 
 require("babel-polyfill");
@@ -26,8 +27,8 @@ require("babel-polyfill");
 class ActualData extends Component {
     constructor(props) {
         super(props);
-        this.x = [];
-        this.fb = {};
+        this.prevValue = [];
+        this.fbarData = {};
         this.flag;
     }
 
@@ -51,7 +52,7 @@ class ActualData extends Component {
     }
 
     checkFocus(event) {
-        this.x.push(event.target.innerText);
+        this.prevValue.push(event.target.innerText);
     }
 
     checkBlur(i, j, q, event) {
@@ -66,16 +67,12 @@ class ActualData extends Component {
             target = event.target.innerText;
         // Observable.of(target).if(() => target == parseInt(target,10), console.log("Number"),console.log("NO"));
         if (dupdata[i][j]["value"] != target) {
-            if (this.x[this.x.length - 1] != target) {
+            if (this.prevValue[this.prevValue.length - 1] != target) {
                 if (target == parseInt(target, 10) || target == "") {
                     this.props.checkIntegerAction(i, j, target);
                     if (dupdata[i][j]["dep"].length) {
-                        var depformula = [];
                         var deep = [];
-                        depformula = dupdata[i][j]["dep"];
-                        depformula.map(function (r) {
-                            deep.push(r);
-                        })
+                        deep = dupdata[i][j]["dep"];
                         deep.map(function (depf) {
                             var p = depf["row"];
                             var t = depf["column"];
@@ -99,9 +96,9 @@ class ActualData extends Component {
                             var op1 = num;
                             if (target[z] == ')') {
                                 target = num;
-                                this.props.stringColor(i, j, target, "blue");
+                                this.props.stringColor(i, j, target, "darkblue");
                                 var me = this;
-                                setTimeout(function () { me.props.stringColor(i, j, target, "black"); }, 500);
+                                setTimeout(function () { me.props.changeColor(i, j, "black"); }, 500);
                             }
                             else {
                                 if (target[z] == '+' || target[z] == '-') {
@@ -118,9 +115,9 @@ class ActualData extends Component {
                                             target = op1 + op2;
                                         else
                                             target = op1 - op2;
-                                        this.props.stringColor(i, j, target, "blue");
+                                        this.props.stringColor(i, j, target, "darkblue");
                                         var me = this;
-                                        setTimeout(function () { me.props.stringColor(i, j, target, "black"); }, 500);
+                                        setTimeout(function () { me.props.changeColor(i, j, "black"); }, 500);
                                     }
                                     else if (alpha.indexOf(target[z]) > -1 && alpha.indexOf(target[z]) < len) {
                                         let k = z + 1, nu = "";
@@ -131,20 +128,26 @@ class ActualData extends Component {
                                         if (dupdata[nu - 1]) {
                                             var op2i = nu - 1;
                                             var op2j = alpha.indexOf(target[z]);
-                                            this.props.applyFunc(j, target, i, this.props.data, "blue", op1, "", "", "", op2i, op2j, operator);
-                                            //var me = this;
-                                            setTimeout(function () { this.props.applyFunc(j, target, i, this.props.data, "black", op1, "", "", "", op2i, op2j, operator); }, 500);
+                                            this.props.applyFunc(j, target, i, this.props.data, "darkblue", op1, "", "", "", op2i, op2j, operator);
+                                            var me = this;
+                                            setTimeout(function () { me.props.changeColor(i, j, "black"); }, 500);
                                         }
                                         else {
-                                            this.props.stringColor(i, j, target, "red");
+                                            this.props.stringColor(i, j, target, "darkblue");
+                                            var me = this;
+                                            setTimeout(function () { me.props.changeColor(i, j, "black"); }, 500);
                                         }
                                     }
                                     else {
-                                        this.props.stringColor(i, j, target, "red");
+                                        this.props.stringColor(i, j, target, "darkblue");
+                                        var me = this;
+                                        setTimeout(function () { me.props.changeColor(i, j, "black"); }, 500);
                                     }
                                 }
                                 else {
-                                    this.props.stringColor(i, j, target, "red");
+                                    this.props.stringColor(i, j, target, "darkblue");
+                                    var me = this;
+                                    setTimeout(function () { me.props.changeColor(i, j, "black"); }, 500);
                                 }
                             }
                         }
@@ -162,7 +165,9 @@ class ActualData extends Component {
                                 var op1i = num - 1;
                                 var op1j = alpha.indexOf(target[2]);
                                 if (target[z] == ')') {
-                                    this.props.applyFunc(j, target, i, this.props.data, "blue", "", "", op1i, op1j, "", "", "");
+                                    this.props.applyFunc(j, target, i, this.props.data, "darkblue", "", "", op1i, op1j, "", "", "");
+                                    var me = this;
+                                    setTimeout(function () { me.props.changeColor(i, j, "black"); }, 500);
                                 }
                                 else {
                                     if (target[z] == '+' || target[z] == '-') {
@@ -175,7 +180,9 @@ class ActualData extends Component {
                                             }
                                             numb = Number(numb);
                                             var op2 = numb;
-                                            this.props.applyFunc(j, target, i, this.props.data, "blue", "", op2, op1i, op1j, "", "", operator);
+                                            this.props.applyFunc(j, target, i, this.props.data, "darkblue", "", op2, op1i, op1j, "", "", operator);
+                                            var me = this;
+                                            setTimeout(function () { me.props.changeColor(i, j, "black"); }, 500);
                                         }
                                         else if (alpha.indexOf(target[z]) > -1 && alpha.indexOf(target[z]) < len) {
                                             let k = z + 1, nu = "";
@@ -186,27 +193,39 @@ class ActualData extends Component {
                                             if (dupdata[nu - 1]) {
                                                 var op2i = nu - 1;
                                                 var op2j = alpha.indexOf(target[z]);
-                                                this.props.applyFunc(j, target, i, this.props.data, "blue", "", "", op1i, op1j, op2i, op2j, operator);
+                                                this.props.applyFunc(j, target, i, this.props.data, "darkblue", "", "", op1i, op1j, op2i, op2j, operator);
+                                                var me = this;
+                                                setTimeout(function () { me.props.changeColor(i, j, "black"); }, 500);
                                             }
                                             else {
-                                                this.props.stringColor(i, j, target, "red");
+                                                this.props.stringColor(i, j, target, "darkblue");
+                                                var me = this;
+                                                setTimeout(function () { me.props.changeColor(i, j, "black"); }, 500);
                                             }
                                         }
                                         else {
-                                            this.props.stringColor(i, j, target, "red");
+                                            this.props.stringColor(i, j, target, "darkblue");
+                                            var me = this;
+                                            setTimeout(function () { me.props.changeColor(i, j, "black"); }, 500);
                                         }
                                     }
                                     else {
-                                        this.props.stringColor(i, j, target, "red");
+                                        this.props.stringColor(i, j, target, "darkblue");
+                                        var me = this;
+                                        setTimeout(function () { me.props.changeColor(i, j, "black"); }, 500);
                                     }
                                 }
                             }
                             else {
-                                this.props.stringColor(i, j, target, "red");
+                                this.props.stringColor(i, j, target, "darkblue");
+                                var me = this;
+                                setTimeout(function () { me.props.changeColor(i, j, "black"); }, 500);
                             }
                         }
                         else {
-                            this.props.stringColor(i, j, target, "red");
+                            this.props.stringColor(i, j, target, "darkblue");
+                            var me = this;
+                            setTimeout(function () { me.props.changeColor(i, j, "black"); }, 500);
                         }
                     }
                     else if (target[0] == 'u' && target[1] == 'r' && target[2] == 'l') {
@@ -219,8 +238,11 @@ class ActualData extends Component {
                             this.props.runUrl(i, j);
                             setInterval(() => { this.props.runUrl(i, j) }, timer);
                         }
-                        else
-                            console.log("BOoo");
+                        else {
+                            this.props.stringColor(i, j, target, "red");
+                            var me = this;
+                            setTimeout(function () { me.props.changeColor(i, j, "black"); }, 500);
+                        }
                     }
                     else {
                         this.props.stringColor(i, j, target, "red");
@@ -237,7 +259,7 @@ class ActualData extends Component {
         let rowno = Number(a.className.substring(1, a.className.length));
         let colNo = alpha.indexOf(a.className[0]);
         let data;
-        let stream$ = Observable.fromEvent(a, 'dblclick');
+        let stream$ = Observable.fromEvent(a, 'dblclick').delay(300);
         stream$.subscribe((e) => {
             fxBar.className = a.id;
             if (Object.keys(this.props.data[rowno - 1][colNo]["fx"]).length > 0) {
@@ -251,8 +273,8 @@ class ActualData extends Component {
             }
             this.props.inputEdit(data);
             fxBar.focus();
-            this.fb.col = colNo;
-            this.fb.row = rowno - 1;
+            this.fbarData.col = colNo;
+            this.fbarData.row = rowno - 1;
         });
         var stream1$ = Observable.fromEvent(fxBar, 'keyup')
             .map(function (e) { return e.target; })
@@ -263,8 +285,8 @@ class ActualData extends Component {
     }
 
     fxBlur(event) {
-        if (this.fb.col !== "undefined") {
-            this.checkBlur(this.fb.row, this.fb.col, event.target.innerText);
+        if (this.fbarData.col !== "undefined") {
+            this.checkBlur(this.fbarData.row, this.fbarData.col, event.target.innerText);
         }
         event.target.innerText = "";
     }
@@ -309,7 +331,7 @@ class ActualData extends Component {
         var dupdata = row;
         let len = dupdata.length;
         var a = [];
-        a.push(i + 1);
+        a.push(<td key={i}>{i + 1}</td>);
         a.push(dupdata.map((col, j) => {
             var s = alpha[j] + (i + 1);
             return (
@@ -366,7 +388,8 @@ function mapDispatchToProps(dispatch) {
         fetchUrlData: bindActionCreators(fetchUrlData, dispatch),
         writeUrl: bindActionCreators(writeUrl, dispatch),
         runUrl: bindActionCreators(runUrl, dispatch),
-        stringColor: bindActionCreators(stringColor, dispatch)
+        stringColor: bindActionCreators(stringColor, dispatch),
+        changeColor: bindActionCreators(changeColor, dispatch)
     };
 }
 
