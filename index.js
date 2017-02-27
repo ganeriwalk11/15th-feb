@@ -14,6 +14,7 @@ export const ADD_COL = 'ADD_COL';
 export const CHECK_INTEGER = 'CHECK_INTEGER';
 export const APPLY_FUNCTION = 'APPLY_FUNCTION';
 export const S_COLOR = 'S_COLOR';
+export const CHANGE_COLOR = 'CHANGE_COLOR';
 export const INSERTUrl = 'INSERTUrl';
 export const RUN_URL = 'RUN_URL';
 
@@ -48,7 +49,6 @@ export function fetchUrlData(data) {
 
 
 export function postData(data) {
-  const request = axios.post(urla, data);
   return {
     type: POST_DATA
   }
@@ -98,6 +98,17 @@ export function stringColor(i, j, target, color) {
       i: i,
       j: j,
       target: target,
+      color: color
+    }
+  };
+};
+
+export function changeColor(i, j, color) {
+  return {
+    type: CHANGE_COLOR,
+    payload: {
+      i: i,
+      j: j,
       color: color
     }
   };
