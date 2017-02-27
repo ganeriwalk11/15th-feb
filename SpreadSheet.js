@@ -1,31 +1,38 @@
 import React, { Component } from 'react';
+import ReactDOM from 'react-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import Rx from "rxjs";
+import { Observable } from 'rxjs/Observable';
+
 import { fetchData } from '../actions/index';
-import { setColor } from '../actions/validations';
 
 class SpreadSheet extends Component {
-  constructor(props) {
-    super(props);
-  }
+    constructor(props) {
+        super(props);
+    }
 
-  componentWillMount(){
-    setInterval(() => {this.props.fetchData()},5000);
-    this.props.fetchData();
-  }
+    componentWillMount() {
+        this.props.fetchData();
+    }
 
-  getData(){
-      this.props.fetchData();
-  }
+    refCallback(item) {
+        if (item) {
+            var a = ReactDOM.findDOMNode(item);
+            var stream$ = Observable.fromEvent(a, 'click');
+            stream$.subscribe((e) => {
+                this.props.fetchData();
+            });
+        }
+    }
 
-  render() {
-    return (
-        <div>
-            <br/>
-            <button onClick={this.getData.bind(this)}>Fetch Data</button>
-        </div>
-    );
-  }
+    render() {
+        return (
+            <div>
+                <button ref={this.refCallback.bind(this)}>Fetch Data</button>
+            </div>
+        );
+    }
 }
 
 function mapDispatchToProps(dispatch) {
