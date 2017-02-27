@@ -10,9 +10,10 @@ import reducers from './reducers';
 
 import { createEpicMiddleware } from 'redux-observable';
 import { rootEpic } from './reducers/index';
-
 const epicMiddleware = createEpicMiddleware(rootEpic);
-const createStoreWithMiddleware = applyMiddleware(epicMiddleware)(createStore);
+
+
+const createStoreWithMiddleware = applyMiddleware(epicMiddleware,ReduxPromise)(createStore);
 
 ReactDOM.render(
   <Provider store={createStoreWithMiddleware(reducers,window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__())}>
