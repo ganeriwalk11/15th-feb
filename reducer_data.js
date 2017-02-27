@@ -1,6 +1,7 @@
 import Rx from 'rxjs';
 import { ajax } from 'rxjs/observable/dom/ajax';
 import { Observable } from 'rxjs/Observable';
+import axios from 'axios';
 
 import { POST_DATA } from '../actions/index';
 import { FETCH_DATA } from '../actions/index';
@@ -13,10 +14,12 @@ import { ADD_COL } from '../actions/index';
 import { CHECK_INTEGER } from '../actions/index';
 import { APPLY_FUNCTION } from '../actions/index';
 import { S_COLOR } from '../actions/index';
+import { CHANGE_COLOR } from '../actions/index';
 import { INSERTUrl } from '../actions/index';
 import { RUN_URL } from '../actions/index';
 
 const rxFetch = require('rxjs-fetch');
+const urla = 'http://localhost:5000/';
 
 export default function(state = [], action)
 {
@@ -113,6 +116,17 @@ export default function(state = [], action)
          return data;
          break;
       }
+
+      case CHANGE_COLOR:
+       { 
+         var data = [...state];
+         var i = action.payload.i;
+         var j = action.payload.j;
+         var color = action.payload.color;
+         data[i][j]['color'] = color;   
+         return data;
+         break;
+      }
       
       case S_COLOR:
       {
@@ -131,6 +145,7 @@ export default function(state = [], action)
           data[i][j]["fx"]["formula"] = "";
           delete data[i][j]["fx"]["op1i"];
           delete data[i][j]["fx"]["op1j"];
+          data[i][j]["fx"] = {};
         }
         if(data[i][j]["fx"]["op2i"])
         {
@@ -143,6 +158,7 @@ export default function(state = [], action)
           data[i][j]["fx"]["formula"] = "";
           delete data[i][j]["fx"]["op2i"];
           delete data[i][j]["fx"]["op2j"];
+          data[i][j]["fx"] = {};
         }
         data[i][j]['color'] = color;
         data[i][j]['value'] = action.payload.target;
@@ -175,6 +191,8 @@ export default function(state = [], action)
         var stream2$ = urlStream$.map(function(res){return res;});
         stream2$.subscribe(function(val){
           data[i][j]['value'] = val["a"];
+        },function(err){
+          data[i][j]['value'] = "ERROR";
         });
         return data;
         break;
@@ -188,6 +206,7 @@ export default function(state = [], action)
             row[j]['color'] = "";
           });
         });
+        const request = axios.post(urla, data);
         return data;
         break;
       }
@@ -217,6 +236,7 @@ export default function(state = [], action)
           data[i][j]["fx"]["formula"] = "";
           delete data[i][j]["fx"]["op1i"];
           delete data[i][j]["fx"]["op1j"];
+          data[i][j]["fx"] = {};
         }
         if(data[i][j]["fx"]["op2i"])
         {
@@ -229,8 +249,8 @@ export default function(state = [], action)
           data[i][j]["fx"]["formula"] = "";
           delete data[i][j]["fx"]["op2i"];
           delete data[i][j]["fx"]["op2j"];
+          data[i][j]["fx"] = {};
         }
-
         if(op1i !=="")
         {
           data[op1i][op1j]["dep"].push({"row" : i, "column":j});
@@ -353,12 +373,9 @@ export default function(state = [], action)
       {
         var data = [...state];
         var colNo = action.payload;
-        console.log(colNo);
         let alpha = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
-       // debugger;
 
         data.map(function(row,i){
-          console.log(row,colNo);
           if(row[colNo]["dep"].length>0)
           {
             for(var j=0;j<row[colNo]["dep"].length;j++)
