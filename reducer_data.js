@@ -7,12 +7,11 @@ import { FETCH_DATA } from '../actions/index';
 import { FETCH_FUL } from '../actions/index';
 import { FETCH_FULL } from '../actions/index';
 import { DELETE_ROW } from '../actions/index';
+import { DELETE_COL } from '../actions/index';
 import { ADD_DATA } from '../actions/index';
 import { ADD_COL } from '../actions/index';
 import { CHECK_INTEGER } from '../actions/index';
-import { APPLY_FUN } from '../actions/index';
 import { APPLY_FUNCTION } from '../actions/index';
-import { applyF } from '../actions/index';
 import { S_COLOR } from '../actions/index';
 import { INSERTUrl } from '../actions/index';
 import { RUN_URL } from '../actions/index';
@@ -78,18 +77,17 @@ export default function(state = [], action)
       { 
         var data = [...state];
         var alpha = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
-        var head;
-        if(data[0])        
-          head = Object.keys(data[0]);
+        var len;
+        if(data[0])
+          len = data[0].length;
         else
-          head = ['a'];
-        var add = {};
-        head.map(function(header)
+          len = 1;
+        var add =[];
+        for(var j = 0; j<len; j++)
         {
-          add[header] = {"value":"","color":"","fx":"","dep":[],"url":""};
-        });
+          add[j] = {"value":"","color":"","fx":{},"dep":[],"url":""};
+        };
         data.push(add);
-        console.log(data);
         return data;
         break;
       }
@@ -98,30 +96,20 @@ export default function(state = [], action)
       {
         var data = [...state];
         data.map(function(row){
-          row[action.payload.toLowerCase()] = {"value":"","color":"","fx":"","dep":[],"url":""};
+          row[row.length] = {"value":"","color":"","fx":{},"dep":[],"url":""};
         });
         return data;
         break;
       }
 
-      case DELETE_ROW:
-      {
-        var data = [...state];
-        var rowNo = action.payload;
-        data.splice(rowNo,1);
-
-        return data;
-        break;
-      }
-
+      
        case CHECK_INTEGER:
        { 
          var data = [...state];
          var i = action.payload.i;
-         var q = action.payload.h;
-         var h = q.h;
-         data[i][h]['color'] = 'green';
-         data[i][h]['value'] = action.payload.target;    
+         var j = action.payload.j;
+         data[i][j]['color'] = 'green';
+         data[i][j]['value'] = action.payload.target;   
          return data;
          break;
       }
@@ -130,10 +118,34 @@ export default function(state = [], action)
       {
         var data = [...state];
         var i = action.payload.i;
-        var h = action.payload.h;
+        var j = action.payload.j;
         var color = action.payload.color;
-        data[i][h]['color'] = color;
-        data[i][h]['value'] = action.payload.target;
+        if(data[i][j]["fx"]["op1i"])
+        {
+          data[data[i][j]["fx"]["op1i"]][data[i][j]["fx"]["op1j"]]["dep"].map(function(obj,q){
+            if(obj["row"] == i && obj["column"] == j)
+            {
+              data[data[i][j]["fx"]["op1i"]][data[i][j]["fx"]["op1j"]]["dep"].splice(q,1);
+            }
+          });
+          data[i][j]["fx"]["formula"] = "";
+          delete data[i][j]["fx"]["op1i"];
+          delete data[i][j]["fx"]["op1j"];
+        }
+        if(data[i][j]["fx"]["op2i"])
+        {
+          data[data[i][j]["fx"]["op2i"]][data[i][j]["fx"]["op2j"]]["dep"].map(function(obj,q){
+            if(obj["row"] == i && obj["column"] == j)
+            {
+              data[data[i][j]["fx"]["op2i"]][data[i][j]["fx"]["op2j"]]["dep"].splice(q,1);
+            }
+          });
+          data[i][j]["fx"]["formula"] = "";
+          delete data[i][j]["fx"]["op2i"];
+          delete data[i][j]["fx"]["op2j"];
+        }
+        data[i][j]['color'] = color;
+        data[i][j]['value'] = action.payload.target;
         return data;
         break;
       }
@@ -142,10 +154,10 @@ export default function(state = [], action)
       {
         var data = [...state];
         var i = action.payload.i;
-        var h = action.payload.h;
+        var j = action.payload.j;
         var urla = action.payload.urlTest;
         var timer = action.payload.timer;
-        data[i][h]['url'] = urla;
+        data[i][j]['url'] = urla;
         return data;
         break;
       }
@@ -154,18 +166,16 @@ export default function(state = [], action)
       {
         var data = [...state];
         var i = action.payload.i;
-        var h = action.payload.h;
-        var target = data[i][h]["url"];
+        var j = action.payload.j;
+        var target = data[i][j]["url"];
         var urlTest = target.slice(4,target.indexOf(','));
         var timer = target.slice(target.indexOf(',')+1,target.indexOf(')'));
         
         var  urlStream$ = rxFetch(urlTest).json();
-       // console.log(urlStream$);
         var stream2$ = urlStream$.map(function(res){return res;});
         stream2$.subscribe(function(val){
-          data[i][h]['value'] = val["a"];
+          data[i][j]['value'] = val["a"];
         });
-        //console.log(data[i][h]["value"]);
         return data;
         break;
       }
@@ -173,34 +183,11 @@ export default function(state = [], action)
       case POST_DATA:
       {
         var data = [...state];
-        var head = Object.keys(data[0]);
         data.map(function(row){
-          head.map(function(header,j){
-            row[header]['color'] = "";
+          row.map(function(col,j){
+            row[j]['color'] = "";
           });
         });
-        return data;
-        break;
-      }
-
-      case APPLY_FUN:
-      {
-        var i = action.payload.i;
-        var op1i = action.payload.op1i;
-        var op1j = action.payload.op1j;
-        var op2i = action.payload.op2i;
-        var op2j = action.payload.op2j;
-        var head = action.payload.head;
-        var ans = action.payload.ans;
-        var color = action.payload.color;
-        var header = action.payload.header;
-        var a = action.payload.a;
-        var data = [...state];
-        data[op1i][head[op1j]]["dep"].push(header + (i+1));
-        data[op2i][head[op2j]]["dep"].push(header + (i+1));
-        data[i][header]["fx"] = a;
-        data[i][header]["color"]  = color;
-        data[i][header]['value'] = ans;
         return data;
         break;
       }
@@ -208,23 +195,258 @@ export default function(state = [], action)
       case APPLY_FUNCTION:
       {
         var i = action.payload.i;
+        var j = action.payload.j;
         var op1i = action.payload.op1i;
         var op1j = action.payload.op1j;
         var op2i = action.payload.op2i;
         var op2j = action.payload.op2j;
-        var head = action.payload.head;
         var ans = action.payload.ans;
         var color = action.payload.color;
-        var header = action.payload.header;
         var a = action.payload.a;
         var data = [...state];
+        let alpha = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+        
+        if(data[i][j]["fx"]["op1i"])
+        {
+          data[data[i][j]["fx"]["op1i"]][data[i][j]["fx"]["op1j"]]["dep"].map(function(obj,q){
+            if(obj["row"] == i && obj["column"] == j)
+            {
+              data[data[i][j]["fx"]["op1i"]][data[i][j]["fx"]["op1j"]]["dep"].splice(q,1);
+            }
+          });
+          data[i][j]["fx"]["formula"] = "";
+          delete data[i][j]["fx"]["op1i"];
+          delete data[i][j]["fx"]["op1j"];
+        }
+        if(data[i][j]["fx"]["op2i"])
+        {
+          data[data[i][j]["fx"]["op2i"]][data[i][j]["fx"]["op2j"]]["dep"].map(function(obj,q){
+            if(obj["row"] == i && obj["column"] == j)
+            {
+              data[data[i][j]["fx"]["op2i"]][data[i][j]["fx"]["op2j"]]["dep"].splice(q,1);
+            }
+          });
+          data[i][j]["fx"]["formula"] = "";
+          delete data[i][j]["fx"]["op2i"];
+          delete data[i][j]["fx"]["op2j"];
+        }
+
         if(op1i !=="")
-          data[op1i][head[op1j]]["dep"].push(header + (i+1));
+        {
+          data[op1i][op1j]["dep"].push({"row" : i, "column":j});
+          data[i][j]["fx"]["op1i"] = op1i;
+          data[i][j]["fx"]["op1j"] = op1j;
+        }
         if(op2i !=="")
-          data[op2i][head[op2j]]["dep"].push(header + (i+1));
-        data[i][header]["fx"] = a;
-        data[i][header]["color"]  = color;
-        data[i][header]['value'] = ans;
+        {
+          data[op2i][op2j]["dep"].push({"row" : i, "column":j});
+          data[i][j]["fx"]["op2i"] = op2i;
+          data[i][j]["fx"]["op2j"] = op2j;
+        }
+        data[i][j]["fx"]["formula"] = a;
+        data[i][j]["color"]  = color;
+        data[i][j]['value'] = ans;
+        return data;
+        break;
+      }
+
+      case DELETE_ROW:
+      {
+        var data = [...state];
+        var rowNo = action.payload;
+        var alpha = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+
+        data[rowNo].map(function(col,j){
+          if(col["dep"].length>0)
+          {
+            for(var i = 0; i<col["dep"].length;i++)
+            {
+              var rows = col["dep"][i]["row"];
+              var cols = col["dep"][i]["column"];
+
+              data[rows][cols]["fx"]["formula"] = "#REF";
+              data[rows][cols]["value"] = "#REF";
+
+              if(data[rows][cols]["fx"]["op1i"] == rowNo)
+              {
+                data[rows][cols]["fx"]["op1i"] = "";
+                data[rows][cols]["fx"]["op1j"] = "";
+              }
+              else
+              {
+                data[rows][cols]["fx"]["op2i"] = "";
+                data[rows][cols]["fx"]["op2j"] = "";
+              }
+            }
+          }
+          if(Object.keys(col["fx"]).length > 0)
+          {
+            if(col["fx"]["op1i"])
+            {
+              var op1i = col["fx"]["op1i"];
+              var op1j = col["fx"]["op1j"];
+              data[op1i][op1j]["dep"].map(function(depRow,l){
+                if(depRow["row"] == rowNo)
+                {
+                  data[op1i][op1j]["dep"].splice(l,1);   
+                }
+              });
+            }
+            if(col["fx"]["op2i"])
+            {
+              var op2i = col["fx"]["op2i"];
+              var op2j = col["fx"]["op2j"];
+              data[op2i][op2j]["dep"].map(function(depRow,l){
+                if(depRow["row"] == rowNo)
+                {
+                  data[op2i][op2j]["dep"].splice(l,1);  
+                }
+              });
+            }
+          }
+        });
+        data.map(function(row,i){
+          row.map(function(col,j){
+            if(col["dep"].length>0)
+            {
+              for(var z=0;z<col["dep"].length;z++)
+              {
+                if(col["dep"][z]["row"]> rowNo)
+                {
+                  col["dep"][z]["row"] = col["dep"][z]["row"] - 1; 
+                }
+              }
+            }
+
+            if(Object.keys(col["fx"]).length>0)
+            {
+              if(col["fx"]["op1i"] > rowNo)
+              {
+                col["fx"]["op1i"] = col["fx"]["op1i"] - 1;
+                var temp = col["fx"]["formula"];
+                if(temp.indexOf("+")>-1)
+                  var oper = temp.indexOf("+");
+                else
+                  var oper = temp.indexOf("-");
+                col["fx"]["formula"] = temp.substring(0,3) + (col["fx"]["op1i"] +1) + temp.substring(oper,temp.length);  
+              }
+              if(col["fx"]["op2i"] > rowNo)
+              {
+                col["fx"]["op2i"] = col["fx"]["op2i"] - 1;
+                var temp = col["fx"]["formula"];
+                if(temp.indexOf("+")>-1)
+                  var oper = temp.indexOf("+");
+                else
+                  var oper = temp.indexOf("-");
+                col["fx"]["formula"] = temp.substring(0,oper + 2) + (col["fx"]["op2i"] +1) + ")";  
+              }  
+            }
+          });
+        });
+
+        data.splice(rowNo,1);
+        return data;
+        break;
+      }
+
+      case DELETE_COL:
+      {
+        var data = [...state];
+        var colNo = action.payload;
+        console.log(colNo);
+        let alpha = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+       // debugger;
+
+        data.map(function(row,i){
+          console.log(row,colNo);
+          if(row[colNo]["dep"].length>0)
+          {
+            for(var j=0;j<row[colNo]["dep"].length;j++)
+            {
+              var rows = row[colNo]["dep"][j]["row"];
+              var cols = row[colNo]["dep"][j]["column"];
+              data[rows][cols]["fx"]["formula"] = "#REF";
+              data[rows][cols]["value"] = "#REF";
+
+              if(data[rows][cols]["fx"]["op1j"] == colNo)
+              {
+                data[rows][cols]["fx"]["op1i"] = "";
+                data[rows][cols]["fx"]["op1j"] = "";
+              }
+              else
+              {
+                data[rows][cols]["fx"]["op2i"] = "";
+                data[rows][cols]["fx"]["op2j"] = "";
+              } 
+            }
+          }
+
+          if(Object.keys(row[colNo]["fx"]).length > 0)
+          {
+            if(row[colNo]["fx"]["op1i"])
+            {
+              var op1i = row[colNo]["fx"]["op1i"];
+              var op1j = row[colNo]["fx"]["op1j"];
+              data[op1i][op1j]["dep"].map(function(depRow,l){
+                if(depRow["column"] == colNo)
+                {
+                  data[op1i][op1j]["dep"].splice(l,1);   
+                }
+              });
+            }
+            if(row[colNo]["fx"]["op2i"])
+            {
+              var op2i = row[colNo]["fx"]["op2i"];
+              var op2j = row[colNo]["fx"]["op2j"];
+              data[op2i][op2j]["dep"].map(function(depRow,l){
+                if(depRow["column"] == colNo)
+                {
+                  data[op2i][op2j]["dep"].splice(l,1);  
+                }
+              });
+            }
+          }          
+        });
+
+        data.map(function(row,i){
+          row.map(function(col,j){
+            if(Object.keys(col["fx"]).length >0)
+            {
+              if(col["fx"]["op1j"] > colNo)
+              {
+                col["fx"]["op1j"] = col["fx"]["op1j"] -1;
+                var newCol = alpha[col["fx"]["op1j"]];
+                col["fx"]["formula"] = col["fx"]["formula"].substr(0,2) + newCol + col["fx"]["formula"].substr(3,col["fx"]["formula"].length);  
+              }
+              if(col["fx"]["op2j"] > colNo)
+              {
+                col["fx"]["op2j"] = col["fx"]["op2j"] -1;
+                var temp = col["fx"]["formula"];
+                if(temp.indexOf("+") > -1)
+                  var oper = temp.indexOf("+") + 1;
+                else
+                  var oper = temp.indexOf("-") + 1;
+                var newCol = alpha[col["fx"]["op2j"]];
+                col["fx"]["formula"] = col["fx"]["formula"].substr(0,oper) + newCol + col["fx"]["formula"].substr(oper+1,col["fx"]["formula"].length);
+              }
+            }
+
+            if(col["dep"].length>0)
+            {
+              for(var z=0;z<col["dep"].length;z++)
+              {
+                if(col["dep"][z]["column"]> colNo)
+                {
+                  col["dep"][z]["column"] = col["dep"][z]["column"] - 1; 
+                }
+              }
+            }
+          });
+        });
+
+        data.map(function(row,i){
+          row.splice(colNo,1);
+        });
         return data;
         break;
       }
